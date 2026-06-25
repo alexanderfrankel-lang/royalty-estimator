@@ -15,10 +15,9 @@
   .search-row input { flex: 1; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; padding: 0 16px; height: 48px; font-size: 15px; color: #f0f0f0; outline: none; transition: border-color 0.15s; }
   .search-row input::placeholder { color: #444; }
   .search-row input:focus { border-color: #1DB954; }
-  .search-row button { height: 48px; padding: 0 20px; background: #1DB954; color: #000; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s; white-space: nowrap; }
+  .search-row button { height: 48px; padding: 0 20px; background: #1DB954; color: #000; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .search-row button:hover { background: #1ed760; }
-  .search-row button:active { transform: scale(0.98); }
-  .search-row button:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
+  .search-row button:disabled { background: #333; color: #666; cursor: not-allowed; }
   .artist-header { display: flex; align-items: center; gap: 16px; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #1e1e1e; }
   .artist-img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
   .artist-img-placeholder { width: 72px; height: 72px; border-radius: 50%; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
@@ -57,7 +56,7 @@
   .disclaimer { font-size: 12px; color: #3a3a3a; line-height: 1.7; margin-bottom: 1.5rem; }
   .error-msg { background: #1e0a0a; color: #f87171; border: 1px solid #3a1010; border-radius: 10px; padding: 0.75rem 1rem; font-size: 14px; margin-bottom: 1rem; }
   .loading { color: #555; font-size: 14px; padding: 0.25rem 0 0.75rem; }
-  .reset-btn { width: 100%; height: 46px; background: transparent; color: #1DB954; border: 1px solid #1DB954; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .reset-btn { width: 100%; height: 46px; background: transparent; color: #1DB954; border: 1px solid #1DB954; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
   .reset-btn:hover { background: #1DB954; color: #000; }
   #results { display: none; }
   #error { display: none; }
@@ -112,7 +111,7 @@
       </div>
       <div class="catalog-note">Catalog sale value as a multiple of annual royalties. Market range is 7–20× NPS depending on genre, recoupment status, and buyer appetite. 12× is the typical mid-market benchmark.</div>
     </div>
-    <p class="disclaimer">Monthly listener data from Spotify via RapidAPI. Streams estimated at 1.3× monthly listeners. Per-stream rates: Spotify master $0.004, publishing $0.001; Apple Music $0.008 at ~25% of Spotify volume; YouTube $0.002 at ~35% of volume. Low/high range reflects ±40% variance.</p>
+    <p class="disclaimer">Monthly listener data via RapidAPI. Streams estimated at 1.3× monthly listeners. Per-stream rates: Spotify master $0.004, publishing $0.001; Apple Music $0.008 at ~25% of Spotify volume; YouTube $0.002 at ~35% of volume. Low/high range reflects ±40% variance.</p>
     <button class="reset-btn" onclick="reset()">Search another artist</button>
   </div>
 </div>
@@ -159,27 +158,23 @@ async function fetchArtist() {
   document.getElementById('searchBtn').disabled=true;
   try {
     if (!spotifyToken) await getSpotifyToken();
-    const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(name)}&type=artist&limit=1`,{headers:{'Authorization':'Bearer '+spotifyToken}});
+    const searchRes = await fetch('https://api.spotify.com/v1/search?q='+encodeURIComponent(name)+'&type=artist&limit=1',{headers:{'Authorization':'Bearer '+spotifyToken}});
     const searchData = await searchRes.json();
     const artist = searchData.artists?.items?.[0];
-    if (!artist) { showError('Artist not found.'); return; }
-
+    if (!artist) { showError('Artist not found. Try a different spelling.'); return; }
     const listenersRes = await fetch('/api/listeners?artistId='+artist.id);
     const listenersData = await listenersRes.json();
     const monthlyListeners = listenersData.monthly_listeners || listenersData.monthlyListeners || 0;
-
     const streams = Math.round(monthlyListeners * 1.3);
     const mid = calcRoyalties(streams);
     const low = calcRoyalties(streams*0.6);
     const high = calcRoyalties(streams*1.4);
-
     const img = document.getElementById('artistImg');
     const placeholder = document.getElementById('artistImgPlaceholder');
     if (artist.images?.[0]?.url) { img.src=artist.images[0].url; img.style.display='block'; placeholder.style.display='none'; }
     else { img.style.display='none'; placeholder.style.display='flex'; }
-
     document.getElementById('artistName').textContent = artist.name;
-    document.getElementById('artistMeta').textContent = `${monthlyListeners.toLocaleString()} monthly listeners · ${(artist.genres||[]).slice(0,2).join(', ')||'genre unknown'}`;
+    document.getElementById('artistMeta').textContent = monthlyListeners.toLocaleString()+' monthly listeners · '+((artist.genres||[]).slice(0,2).join(', ')||'genre unknown');
     document.getElementById('monthlyListeners').textContent = fmt(monthlyListeners);
     document.getElementById('estStreams').textContent = fmt(streams)+'/mo';
     document.getElementById('monthlyRoyalties').textContent = fmtMoney(mid.total/12)+'/mo';
