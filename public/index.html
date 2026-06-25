@@ -166,7 +166,7 @@ async function fetchArtist() {
     const listenersRes = await fetch('/api/listeners?artistId='+artist.id);
     const listenersData = await listenersRes.json();
     const monthlyListeners = listenersData.monthly_listeners || listenersData.monthlyListeners || 0;
-    const streams = Math.round(monthlyListeners * 1.3);
+    const streams = Math.round(monthlyListeners * 2.8);
     const mid = calcRoyalties(streams);
     const low = calcRoyalties(streams*0.6);
     const high = calcRoyalties(streams*1.4);
