@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Royalty Estimator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0e0e0e; color: #f0f0f0;
+    min-height: 100vh; display: flex; align-items: flex-start;
+    justify-content: center; padding: 3rem 1rem;
+  }
+  .app { width: 100%; max-width: 640px; }
+  .header { margin-bottom: 2.5rem; }
+  .header h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; color: #fff; margin-bottom: 6px; }
+  .header p { font-size: 14px; color: #666; line-height: 1.6; }
+  .search-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+  .search-row input {
+    flex: 1; background: #1a1a1a; border: 1px solid #2a2a2a;
+    border-radius: 10px; padding: 0 16px; height: 48px;
+    font-size: 15px; color: #f0f0f0; outline: none; transition: border-color 0.15s;
+  }
+  .search-row input::placeholder { color: #444; }
+  .search-row input:focus { border-color: #1DB954; }
+  .search-row button {
+    height: 48px; padding: 0 20px; background: #1DB954; color: #000;
+    border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s, transform 0.1s; white-space: nowrap;
+  }
+  .search-row button:hover { background: #1ed760; }
+  .search-row button:active { transform: scale(0.98); }
+  .search-row button:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
+  .artist-header {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #1e1e1e;
+  }
+  .artist-img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .artist-img-placeholder {
+    width: 72px; height: 72px; border-radius: 50%; background: #1a1a1a;
+    display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0;
+  }
+  .artist-name { font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .artist-meta { font-size: 13px; color: #888; }
+  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+  .metric-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 12px; padding: 1rem 1.25rem; }
+  .metric-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .metric-value { font-size: 20px; font-weight: 600; color: #fff; letter-spacing: -0.5px; }
+  .breakdown-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+  .breakdown-title { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+  .breakdown-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid #1e1e1e; font-size: 14px;
+  }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-label { display: flex; align-items: center; gap: 8px; color: #aaa; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .breakdown-value { font-weight: 600; color: #fff; }
+  .total-row { border-top: 1px solid #333 !important; }
+  .total-row .breakdown-label { color: #fff; font-weight: 600; font-size: 15px; }
+  .total-row .breakdown-value { color: #1DB954; font-size: 16px; }
+  .range-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+  .range-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 12px; padding: 1rem; text-align: center; }
+  .range-card.mid { border-color: #1DB954; }
+  .range-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #555; margin-bottom: 6px; }
+  .range-card.mid .range-tag { color: #1DB954; }
+  .range-val { font-size: 18px; font-weight: 600; color: #fff; }
+  .catalog-card { background: #141414; border: 1px solid #2a2a2a; border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem; }
+  .catalog-title { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+  .catalog-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }
+  .catalog-col { text-align: center; padding: 0 8px; }
+  .catalog-col.mid { border-left: 1px solid #2a2a2a; border-right: 1px solid #2a2a2a; }
+  .catalog-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #555; margin-bottom: 6px; }
+  .catalog-col.mid .catalog-tag { color: #1DB954; }
+  .catalog-val { font-size: 18px; font-weight: 600; color: #fff; }
+  .catalog-col.mid .catalog-val { font-size: 22px; color: #1DB954; }
+  .catalog-note { font-size: 12px; color: #444; margin-top: 1rem; line-height: 1.6; }
+  .disclaimer { font-size: 12px; color: #3a3a3a; line-height: 1.7; margin-bottom: 1.5rem; }
+  .error-msg { background: #1e0a0a; color: #f87171; border: 1px solid #3a1010; border-radius: 10px; padding: 0.75rem 1rem; font-size: 14px; margin-bottom: 1rem; }
+  .loading { color: #555; font-size: 14px; padding: 0.25rem 0 0.75rem; }
+  .reset-btn {
+    width: 100%; height: 46px; background: transparent; color: #1DB954;
+    border: 1px solid #1DB954; border-radius: 10px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .reset-btn:hover { background: #1DB954; color: #000; }
+  #results { display: none; }
+  #error { display: none; }
+  #loading { display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>Royalty estimator</h1>
+    <p>Type any artist name to estimate their performance royalty value.</p>
+  </div>
+
+  <div class="search-row">
+    <input type="text" id="artistInput" placeholder="Artist name (e.g. Drake)" />
+    <button id="searchBtn" onclick="fetchArtist()">Estimate</button>
+  </div>
+
+  <div id="error" class="error-msg"></div>
+  <div id="loading" class="loading">Looking up artist...</div>
+
+  <div id="results">
+    <div class="artist-header">
+      <img id="artistImg" class="artist-img" src="" alt="" style="display:none" />
+      <div id="artistImgPlaceholder" class="artist-img-placeholder">🎵</div>
+      <div>
+        <div class="artist-name" id="artistName"></div>
+        <div class="artist-meta" id="artistMeta"></div>
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Monthly listeners</div>
+        <div class="metric-value" id="monthlyListeners">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Est. monthly streams</div>
+        <div class="metric-value" id="estStreams">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Est. monthly royalties</div>
+        <div class="metric-value" id="monthlyRoyalties">—</div>
+      </div>
+    </div>
+
+    <div class="breakdown-card">
+      <div class="breakdown-title">Annual breakdown by platform</div>
+      <div class="breakdown-row">
+        <span class="breakdown-label"><span class="dot" style="background:#1DB954"></span>Spotify master</span>
+        <span class="breakdown-value" id="spotifyMaster">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label"><span class="dot" style="background:#169140"></span>Spotify publishing</span>
+        <span class="breakdown-value" id="spotifyPub">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label"><span class="dot" style="background:#fc3c44"></span>Apple Music</span>
+        <span class="breakdown-value" id="apple">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label"><span class="dot" style="background:#FF0000"></span>YouTube</span>
+        <span class="breakdown-value" id="youtube">—</span>
+      </div>
+      <div class="breakdown-row total-row">
+        <span class="breakdown-label">Total (mid estimate)</span>
+        <span class="breakdown-value" id="total">—</span>
+      </div>
+    </div>
+
+    <div class="range-row">
+      <div class="range-card">
+        <div class="range-tag">Low</div>
+        <div class="range-val" id="rangeLow">—</div>
+      </div>
+      <div class="range-card mid">
+        <div class="range-tag">Mid</div>
+        <div class="range-val" id="rangeMid">—</div>
+      </div>
+      <div class="range-card">
+        <div class="range-tag">High</div>
+        <div class="range-val" id="rangeHigh">—</div>
+      </div>
+    </div>
+
+    <div class="catalog-card">
+      <div class="catalog-title">Estimated catalog value</div>
+      <div class="catalog-grid">
+        <div class="catalog-col">
+          <div class="catalog-tag">Low (7×)</div>
+          <div class="catalog-val" id="saleLow">—</div>
+        </div>
+        <div class="catalog-col mid">
+          <div class="catalog-tag">Mid (12×)</div>
+          <div class="catalog-val" id="saleMid">—</div>
+        </div>
+        <div class="catalog-col">
+          <div class="catalog-tag">High (20×)</div>
+          <div class="catalog-val" id="saleHigh">—</div>
+        </div>
+      </div>
+      <div class="catalog-note">Catalog sale value as a multiple of annual royalties. Market range is 7–20× NPS depending on genre, recoupment status, and buyer appetite. 12× is the typical mid-market benchmark.</div>
+    </div>
+
+    <p class="disclaimer">
+      Monthly listener data from Spotify via RapidAPI. Streams estimated at 1.3× monthly listeners. Per-stream rates: Spotify master $0.004, publishing $0.001; Apple Music $0.008 at ~25% of Spotify volume; YouTube $0.002 at ~35% of volume. Low/high range reflects ±40% variance. Actual royalties vary by territory, distributor, label deal, and songwriting ownership. Performance royalties only.
+    </p>
+
+    <button class="reset-btn" onclick="reset()">Search another artist</button>
+  </div>
+</div>
+
+<script>
+const SPOTIFY_CLIENT_ID = '5e868c7752ae46fa82aa284d8754b0bd';
+const SPOTIFY_CLIENT_SECRET = 'b6910fabcd3843d8945b877d8312549e';
+const RAPIDAPI_KEY = 'a31b9055a3msh4dc9420da8258dap10e641jsnafea3';
+let spotifyToken = null;
+
+function fmt(n) {
+  if (n >= 1000000000) return (n / 1000000000).toFixed(1) + 'B';
+  if (n >= 1000000)    return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000)       return (n / 1000).toFixed(1) + 'K';
+  return Math.round(n).toLocaleString();
+}
+
+function fmtMoney(n) {
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(2) + 'M';
+  if (n >= 1000)    return '$' + Math.round(n / 1000) + 'K';
+  return '$' + Math.round(n);
+}
+
+function calcRoyalties(streams) {
+  const spotifyMaster = streams * 0.004 * 12;
+  const spotifyPub    = streams * 0.001 * 12;
+  const apple         = streams * 0.25 * 0.008 * 12;
+  const youtube       = streams * 0.35 * 0.002 * 12;
+  const total         = spotifyMaster + spotifyPub + apple + youtube;
+  return { spotifyMaster, spotifyPub, apple, youtube, total };
+}
+
+async function getSpotifyToken() {
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic ' + btoa(SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET)
+    },
+    body: 'grant_type=client_credentials'
+  });
+  const data = await res.json();
+  if (!data.access_token) throw new Error('Spotify auth failed');
+  spotifyToken = data.access_token;
+}
+
+async function getMonthlyListeners(artistId) {
+  const target = 'https://spotify-artist-monthly-listeners.p.rapidapi.com/artist/' + artistId;
+  const proxy = 'https://corsproxy.io/?' + encodeURIComponent(target);
+  const res = await fetch(proxy, {
+    headers: {
+      'x-rapidapi-key': RAPIDAPI_KEY,
+      'x-rapidapi-host': 'spotify-artist-monthly-listeners.p.rapidapi.com'
+    }
+  });
+  if (!res.ok) throw new Error('RapidAPI error: ' + res.status);
+  const data = await res.json();
+  return data.monthly_listeners || data.monthlyListeners || data.listeners || 0;
+}
+
+async function fetchArtist() {
+  const name = document.getElementById('artistInput').value.trim();
+  if (!name) return;
+
+  document.getElementById('error').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('searchBtn').disabled = true;
+
+  try {
+    // Step 1: get artist from Spotify
+    if (!spotifyToken) await getSpotifyToken();
+    const searchRes = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(name)}&type=artist&limit=1`,
+      { headers: { 'Authorization': 'Bearer ' + spotifyToken } }
+    );
+    const searchData = await searchRes.json();
+    const artist = searchData.artists?.items?.[0];
+    if (!artist) { showError('Artist not found. Try a different spelling.'); return; }
+
+    // Fetch full artist object to get followers
+    const artistRes = await fetch(`https://api.spotify.com/v1/artists/${artist.id}`, { headers: { 'Authorization': 'Bearer ' + spotifyToken } });
+    const artistFull = await artistRes.json();
+    const followers = artistFull.followers?.total || 0;
+
+    // Step 2: get monthly listeners from RapidAPI
+    let monthlyListeners = 0;
+    try {
+      monthlyListeners = await getMonthlyListeners(artist.id);
+    } catch(e) {
+      monthlyListeners = followers * 3;
+    }
+
+    if (!monthlyListeners) {
+      monthlyListeners = followers * 3;
+    }
+
+
+
+    // Step 3: calculate
+    const streams = Math.round(monthlyListeners * 1.3);
+    const mid  = calcRoyalties(streams);
+    const low  = calcRoyalties(streams * 0.6);
+    const high = calcRoyalties(streams * 1.4);
+
+    // Render
+    const img = document.getElementById('artistImg');
+    const placeholder = document.getElementById('artistImgPlaceholder');
+    if (artist.images?.[0]?.url) {
+      img.src = artist.images[0].url;
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      placeholder.style.display = 'flex';
+    }
+
+    document.getElementById('artistName').textContent = artist.name;
+    document.getElementById('artistMeta').textContent =
+      `${monthlyListeners.toLocaleString()} monthly listeners · ${(artist.genres || []).slice(0, 2).join(', ') || 'genre unknown'}`;
+
+    document.getElementById('monthlyListeners').textContent  = fmt(monthlyListeners);
+    document.getElementById('estStreams').textContent        = fmt(streams) + '/mo';
+    document.getElementById('monthlyRoyalties').textContent  = fmtMoney(mid.total / 12) + '/mo';
+    document.getElementById('spotifyMaster').textContent     = fmtMoney(mid.spotifyMaster) + '/yr';
+    document.getElementById('spotifyPub').textContent        = fmtMoney(mid.spotifyPub) + '/yr';
+    document.getElementById('apple').textContent             = fmtMoney(mid.apple) + '/yr';
+    document.getElementById('youtube').textContent           = fmtMoney(mid.youtube) + '/yr';
+    document.getElementById('total').textContent             = fmtMoney(mid.total) + '/yr';
+    document.getElementById('rangeLow').textContent          = fmtMoney(low.total) + '/yr';
+    document.getElementById('rangeMid').textContent          = fmtMoney(mid.total) + '/yr';
+    document.getElementById('rangeHigh').textContent         = fmtMoney(high.total) + '/yr';
+    document.getElementById('saleLow').textContent           = fmtMoney(mid.total * 7);
+    document.getElementById('saleMid').textContent           = fmtMoney(mid.total * 12);
+    document.getElementById('saleHigh').textContent          = fmtMoney(mid.total * 20);
+
+    document.getElementById('results').style.display = 'block';
+
+  } catch(e) {
+    showError('Something went wrong: ' + e.message);
+  } finally {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('searchBtn').disabled = false;
+  }
+}
+
+function reset() {
+  document.getElementById('artistInput').value = '';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('error').style.display = 'none';
+  document.getElementById('artistInput').focus();
+}
+
+function showError(msg) {
+  const el = document.getElementById('error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('searchBtn').disabled = false;
+}
+
+document.getElementById('artistInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') fetchArtist();
+});
+</script>
+</body>
+</html>
