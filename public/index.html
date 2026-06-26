@@ -138,15 +138,14 @@ function fmtMoney(n) {
   if (n >= 1000) return '$'+Math.round(n/1000)+'K';
   return '$'+Math.round(n);
 }
-function calcRoyalties(streams) {
+function calcRoyalties(streams, split) {
   const spotifyMaster = streams*0.004*12;
-const split = parseInt(document.getElementById('songwriterSplit').value) / 100;
-const spotifyPub = streams*0.001*split*12;
-const proIncome = streams*0.0005*split*12;
+  const spotifyPub = streams*0.001*split*12;
+  const proIncome = streams*0.0005*split*12;
   const apple = streams*0.25*0.008*12;
   const youtube = streams*0.35*0.002*12;
   const total = spotifyMaster+spotifyPub+apple+youtube;
-  const proIncome = streams*0.0005*split*12;   return {spotifyMaster,spotifyPub,apple,youtube,total,proIncome};
+  return {spotifyMaster,spotifyPub,proIncome,apple,youtube,total};
 }
 async function getSpotifyToken() {
   const res = await fetch('https://accounts.spotify.com/api/token', {
