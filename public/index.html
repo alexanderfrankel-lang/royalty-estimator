@@ -74,6 +74,11 @@
     <input type="text" id="artistInput" placeholder="Artist name (e.g. Drake)" />
     <button id="searchBtn" onclick="fetchArtist()">Estimate</button>
   </div>
+  <div style="display:flex; align-items:center; gap:12px; background:#141414; border:1px solid #1e1e1e; border-radius:10px; padding:0.75rem 1rem; margin-bottom:1rem;">
+    <label style="font-size:13px; color:#888; white-space:nowrap;">Songwriter split</label>
+    <input type="range" id="songwriterSplit" min="0" max="100" value="50" style="flex:1; accent-color:#1DB954;" oninput="document.getElementById('splitVal').textContent=this.value+'%'" />
+    <span id="splitVal" style="font-size:13px; color:#1DB954; width:36px; text-align:right;">50%</span>
+  </div>
   <div id="error" class="error-msg"></div>
   <div id="loading" class="loading">Looking up artist...</div>
   <div id="results">
