@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -132,7 +131,7 @@
       <div class="catalog-note">Catalog sale value as a multiple of annual royalties. Market range is 7–20× NPS depending on genre, recoupment status, and buyer appetite. 12× is the typical mid-market benchmark.</div>
     </div>
 
-    <p class="disclaimer">Monthly listener data via RapidAPI. Streams estimated at 2.8× monthly listeners. Per-stream rates: Spotify master $0.004, publishing $0.001 × songwriter split; PRO $0.0005 × songwriter split; Apple Music $0.008 at ~25% of Spotify volume; YouTube $0.002 at ~35% of volume. Low/high range reflects ±40% variance.</p>
+    <p class="disclaimer">Monthly listener data via RapidAPI. Streams estimated at 2.8× monthly listeners. Per-stream rates: Spotify master $0.004, publishing $0.001 × songwriter split; PRO $0.0033 × songwriter split; Apple Music $0.008 at ~10% of Spotify volume; YouTube $0.002 at ~35% of volume. Low/high range reflects ±40% variance.</p>
     <button class="reset-btn" onclick="reset()">Search another artist</button>
   </div>
 </div>
@@ -156,8 +155,8 @@ function fmtMoney(n) {
 function calcRoyalties(streams, split) {
   const spotifyMaster = streams*0.004*12;
   const spotifyPub = streams*0.001*split*12;
-  const proIncome = streams*0.0005*split*12;
-  const apple = streams*0.25*0.008*12;
+  const proIncome = streams*0.0033*split*12;
+  const apple = streams*0.10*0.008*12;
   const youtube = streams*0.35*0.002*12;
   const total = spotifyMaster+spotifyPub+proIncome+apple+youtube;
   return {spotifyMaster,spotifyPub,proIncome,apple,youtube,total};
@@ -239,3 +238,4 @@ document.getElementById('artistInput').addEventListener('keydown',e=>{if(e.key==
 </script>
 </body>
 </html>
+
