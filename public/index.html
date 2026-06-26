@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+Here's the complete file — select all, delete, paste this entire thing, then commit:
+html<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -18,6 +19,10 @@
   .search-row button { height: 48px; padding: 0 20px; background: #1DB954; color: #000; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .search-row button:hover { background: #1ed760; }
   .search-row button:disabled { background: #333; color: #666; cursor: not-allowed; }
+  .slider-row { display: flex; align-items: center; gap: 12px; background: #141414; border: 1px solid #1e1e1e; border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; }
+  .slider-row label { font-size: 13px; color: #888; white-space: nowrap; }
+  .slider-row input[type=range] { flex: 1; accent-color: #1DB954; }
+  .slider-val { font-size: 13px; color: #1DB954; width: 36px; text-align: right; }
   .artist-header { display: flex; align-items: center; gap: 16px; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #1e1e1e; }
   .artist-img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
   .artist-img-placeholder { width: 72px; height: 72px; border-radius: 50%; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
@@ -67,20 +72,24 @@
 <div class="app">
   <div class="header">
     <h1>What's It Worth?</h1>
-    <p><p>See what your catalog is worth.</p>
-  <p style="font-size:12px; color:#444; margin-top:8px; line-height:1.6;">Estimates performance royalties only — excludes sync licensing, neighboring rights, live/touring income, and merchandise. Actual figures vary based on label deal, distributor split, and songwriting ownership.</p></p>
+    <p>See what your catalog is worth.</p>
+    <p style="font-size:12px; color:#444; margin-top:8px; line-height:1.6;">Estimates performance royalties only — excludes sync licensing, neighboring rights, live/touring income, and merchandise. Actual figures vary based on label deal, distributor split, and songwriting ownership.</p>
   </div>
+
   <div class="search-row">
     <input type="text" id="artistInput" placeholder="Artist name (e.g. Drake)" />
     <button id="searchBtn" onclick="fetchArtist()">Estimate</button>
   </div>
-  <div style="display:flex; align-items:center; gap:12px; background:#141414; border:1px solid #1e1e1e; border-radius:10px; padding:0.75rem 1rem; margin-bottom:1rem;">
-    <label style="font-size:13px; color:#888; white-space:nowrap;">Songwriter split</label>
-    <input type="range" id="songwriterSplit" min="0" max="100" value="50" style="flex:1; accent-color:#1DB954;" oninput="document.getElementById('splitVal').textContent=this.value+'%'" />
-    <span id="splitVal" style="font-size:13px; color:#1DB954; width:36px; text-align:right;">50%</span>
+
+  <div class="slider-row">
+    <label>Songwriter split</label>
+    <input type="range" id="songwriterSplit" min="0" max="100" value="50" oninput="document.getElementById('splitVal').textContent=this.value+'%'" />
+    <span class="slider-val" id="splitVal">50%</span>
   </div>
+
   <div id="error" class="error-msg"></div>
   <div id="loading" class="loading">Looking up artist...</div>
+
   <div id="results">
     <div class="artist-header">
       <img id="artistImg" class="artist-img" src="" alt="" style="display:none" />
@@ -90,25 +99,29 @@
         <div class="artist-meta" id="artistMeta"></div>
       </div>
     </div>
+
     <div class="metrics-grid">
       <div class="metric-card"><div class="metric-label">Monthly listeners</div><div class="metric-value" id="monthlyListeners">—</div></div>
       <div class="metric-card"><div class="metric-label">Est. monthly streams</div><div class="metric-value" id="estStreams">—</div></div>
       <div class="metric-card"><div class="metric-label">Est. monthly royalties</div><div class="metric-value" id="monthlyRoyalties">—</div></div>
     </div>
+
     <div class="breakdown-card">
       <div class="breakdown-title">Annual breakdown by platform</div>
       <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#1DB954"></span>Spotify master</span><span class="breakdown-value" id="spotifyMaster">—</span></div>
       <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#169140"></span>Spotify publishing</span><span class="breakdown-value" id="spotifyPub">—</span></div>
-<div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#22c55e"></span>PRO (ASCAP/BMI)</span><span class="breakdown-value" id="proIncome">—</span></div>
+      <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#22c55e"></span>PRO (ASCAP/BMI)</span><span class="breakdown-value" id="proIncome">—</span></div>
       <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#fc3c44"></span>Apple Music</span><span class="breakdown-value" id="apple">—</span></div>
       <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#FF0000"></span>YouTube</span><span class="breakdown-value" id="youtube">—</span></div>
       <div class="breakdown-row total-row"><span class="breakdown-label">Total (mid estimate)</span><span class="breakdown-value" id="total">—</span></div>
     </div>
+
     <div class="range-row">
       <div class="range-card"><div class="range-tag">Low</div><div class="range-val" id="rangeLow">—</div></div>
       <div class="range-card mid"><div class="range-tag">Mid</div><div class="range-val" id="rangeMid">—</div></div>
       <div class="range-card"><div class="range-tag">High</div><div class="range-val" id="rangeHigh">—</div></div>
     </div>
+
     <div class="catalog-card">
       <div class="catalog-title">Estimated catalog value</div>
       <div class="catalog-grid">
@@ -118,10 +131,12 @@
       </div>
       <div class="catalog-note">Catalog sale value as a multiple of annual royalties. Market range is 7–20× NPS depending on genre, recoupment status, and buyer appetite. 12× is the typical mid-market benchmark.</div>
     </div>
-    <p class="disclaimer">Monthly listener data via RapidAPI. Streams estimated at 1.3× monthly listeners. Per-stream rates: Spotify master $0.004, publishing $0.001; Apple Music $0.008 at ~25% of Spotify volume; YouTube $0.002 at ~35% of volume. Low/high range reflects ±40% variance.</p>
+
+    <p class="disclaimer">Monthly listener data via RapidAPI. Streams estimated at 2.8× monthly listeners. Per-stream rates: Spotify master $0.004, publishing $0.001 × songwriter split; PRO $0.0005 × songwriter split; Apple Music $0.008 at ~25% of Spotify volume; YouTube $0.002 at ~35% of volume. Low/high range reflects ±40% variance.</p>
     <button class="reset-btn" onclick="reset()">Search another artist</button>
   </div>
 </div>
+
 <script>
 const SPOTIFY_CLIENT_ID = '5e868c7752ae46fa82aa284d8754b0bd';
 const SPOTIFY_CLIENT_SECRET = 'b6910fabcd3843d8945b877d8312549e';
@@ -144,7 +159,7 @@ function calcRoyalties(streams, split) {
   const proIncome = streams*0.0005*split*12;
   const apple = streams*0.25*0.008*12;
   const youtube = streams*0.35*0.002*12;
-  const total = spotifyMaster+spotifyPub+apple+youtube;
+  const total = spotifyMaster+spotifyPub+proIncome+apple+youtube;
   return {spotifyMaster,spotifyPub,proIncome,apple,youtube,total};
 }
 async function getSpotifyToken() {
@@ -173,10 +188,11 @@ async function fetchArtist() {
     const listenersRes = await fetch('/api/listeners?artistId='+artist.id);
     const listenersData = await listenersRes.json();
     const monthlyListeners = listenersData.monthly_listeners || listenersData.monthlyListeners || 0;
+    const split = parseInt(document.getElementById('songwriterSplit').value) / 100;
     const streams = Math.round(monthlyListeners * 2.8);
-    const mid = calcRoyalties(streams);
-    const low = calcRoyalties(streams*0.6);
-    const high = calcRoyalties(streams*1.4);
+    const mid = calcRoyalties(streams, split);
+    const low = calcRoyalties(streams*0.6, split);
+    const high = calcRoyalties(streams*1.4, split);
     const img = document.getElementById('artistImg');
     const placeholder = document.getElementById('artistImgPlaceholder');
     if (artist.images?.[0]?.url) { img.src=artist.images[0].url; img.style.display='block'; placeholder.style.display='none'; }
@@ -188,7 +204,7 @@ async function fetchArtist() {
     document.getElementById('monthlyRoyalties').textContent = fmtMoney(mid.total/12)+'/mo';
     document.getElementById('spotifyMaster').textContent = fmtMoney(mid.spotifyMaster)+'/yr';
     document.getElementById('spotifyPub').textContent = fmtMoney(mid.spotifyPub)+'/yr';
-document.getElementById('proIncome').textContent = fmtMoney(mid.proIncome)+'/yr';
+    document.getElementById('proIncome').textContent = fmtMoney(mid.proIncome)+'/yr';
     document.getElementById('apple').textContent = fmtMoney(mid.apple)+'/yr';
     document.getElementById('youtube').textContent = fmtMoney(mid.youtube)+'/yr';
     document.getElementById('total').textContent = fmtMoney(mid.total)+'/yr';
