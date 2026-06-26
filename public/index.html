@@ -188,6 +188,7 @@ async function fetchArtist() {
     document.getElementById('monthlyRoyalties').textContent = fmtMoney(mid.total/12)+'/mo';
     document.getElementById('spotifyMaster').textContent = fmtMoney(mid.spotifyMaster)+'/yr';
     document.getElementById('spotifyPub').textContent = fmtMoney(mid.spotifyPub)+'/yr';
+document.getElementById('proIncome').textContent = fmtMoney(mid.proIncome)+'/yr';
     document.getElementById('apple').textContent = fmtMoney(mid.apple)+'/yr';
     document.getElementById('youtube').textContent = fmtMoney(mid.youtube)+'/yr';
     document.getElementById('total').textContent = fmtMoney(mid.total)+'/yr';
