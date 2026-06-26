@@ -146,7 +146,7 @@ const proIncome = streams*0.0005*split*12;
   const apple = streams*0.25*0.008*12;
   const youtube = streams*0.35*0.002*12;
   const total = spotifyMaster+spotifyPub+apple+youtube;
-  return {spotifyMaster,spotifyPub,apple,youtube,total};
+  const proIncome = streams*0.0005*split*12;   return {spotifyMaster,spotifyPub,apple,youtube,total,proIncome};
 }
 async function getSpotifyToken() {
   const res = await fetch('https://accounts.spotify.com/api/token', {
