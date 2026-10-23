@@ -185,6 +185,11 @@ async function fetchArtist() {
     const listenersRes = await fetch('/api/listeners?artistId='+artist.id);
     const listenersData = await listenersRes.json();
     const monthlyListeners = listenersData.monthly_listeners || listenersData.monthlyListeners || 0;
+    if (!monthlyListeners) {
+      const why = listenersData.message || listenersData.error || 'no listener count returned';
+      showError('Couldn\'t get monthly listeners for '+artist.name+' ('+why+'). Try again in a minute.');
+      return;
+    }
     const split = parseInt(document.getElementById('songwriterSplit').value) / 100;
     const streams = Math.round(monthlyListeners * 2.8);
     const mid = calcRoyalties(streams, split);
