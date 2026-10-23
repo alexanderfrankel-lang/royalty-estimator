@@ -4,240 +4,455 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>What's It Worth?</title>
+<meta name="description" content="Ballpark any artist's catalog in seconds, or run a real valuation from your income." />
 <style>
+  :root {
+    --bg: #0e0e0e; --card: #151515; --line: #232323; --line2: #2e2e2e;
+    --text: #f2f2f2; --muted: #8a8a8a; --faint: #5a5a5a;
+    --green: #1DB954; --green2: #1ed760; --red: #f87171; --amber: #f5b942;
+  }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0e0e0e; color: #f0f0f0; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 3rem 1rem; }
-  .app { width: 100%; max-width: 640px; }
-  .header { margin-bottom: 2.5rem; }
-  .header h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; color: #fff; margin-bottom: 6px; }
-  .header p { font-size: 14px; color: #666; line-height: 1.6; }
-  .search-row { display: flex; gap: 8px; margin-bottom: 1rem; }
-  .search-row input { flex: 1; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; padding: 0 16px; height: 48px; font-size: 15px; color: #f0f0f0; outline: none; transition: border-color 0.15s; }
-  .search-row input::placeholder { color: #444; }
-  .search-row input:focus { border-color: #1DB954; }
-  .search-row button { height: 48px; padding: 0 20px; background: #1DB954; color: #000; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .search-row button:hover { background: #1ed760; }
-  .search-row button:disabled { background: #333; color: #666; cursor: not-allowed; }
-  .slider-row { display: flex; align-items: center; gap: 12px; background: #141414; border: 1px solid #1e1e1e; border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; }
-  .slider-row label { font-size: 13px; color: #888; white-space: nowrap; }
-  .slider-row input[type=range] { flex: 1; accent-color: #1DB954; }
-  .slider-val { font-size: 13px; color: #1DB954; width: 36px; text-align: right; }
-  .artist-header { display: flex; align-items: center; gap: 16px; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #1e1e1e; }
-  .artist-img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-  .artist-img-placeholder { width: 72px; height: 72px; border-radius: 50%; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
-  .artist-name { font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 4px; }
-  .artist-meta { font-size: 13px; color: #888; }
-  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
-  .metric-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 12px; padding: 1rem 1.25rem; }
-  .metric-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-  .metric-value { font-size: 20px; font-weight: 600; color: #fff; letter-spacing: -0.5px; }
-  .breakdown-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
-  .breakdown-title { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
-  .breakdown-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #1e1e1e; font-size: 14px; }
-  .breakdown-row:last-child { border-bottom: none; }
-  .breakdown-label { display: flex; align-items: center; gap: 8px; color: #aaa; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .breakdown-value { font-weight: 600; color: #fff; }
-  .total-row { border-top: 1px solid #333 !important; }
-  .total-row .breakdown-label { color: #fff; font-weight: 600; font-size: 15px; }
-  .total-row .breakdown-value { color: #1DB954; font-size: 16px; }
-  .range-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
-  .range-card { background: #141414; border: 1px solid #1e1e1e; border-radius: 12px; padding: 1rem; text-align: center; }
-  .range-card.mid { border-color: #1DB954; }
-  .range-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #555; margin-bottom: 6px; }
-  .range-card.mid .range-tag { color: #1DB954; }
-  .range-val { font-size: 18px; font-weight: 600; color: #fff; }
-  .catalog-card { background: #141414; border: 1px solid #2a2a2a; border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem; }
-  .catalog-title { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
-  .catalog-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; }
-  .catalog-col { text-align: center; padding: 0 8px; }
-  .catalog-col.mid { border-left: 1px solid #2a2a2a; border-right: 1px solid #2a2a2a; }
-  .catalog-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #555; margin-bottom: 6px; }
-  .catalog-col.mid .catalog-tag { color: #1DB954; }
-  .catalog-val { font-size: 18px; font-weight: 600; color: #fff; }
-  .catalog-col.mid .catalog-val { font-size: 22px; color: #1DB954; }
-  .catalog-note { font-size: 12px; color: #444; margin-top: 1rem; line-height: 1.6; }
-  .disclaimer { font-size: 12px; color: #3a3a3a; line-height: 1.7; margin-bottom: 1.5rem; }
-  .error-msg { background: #1e0a0a; color: #f87171; border: 1px solid #3a1010; border-radius: 10px; padding: 0.75rem 1rem; font-size: 14px; margin-bottom: 1rem; }
-  .loading { color: #555; font-size: 14px; padding: 0.25rem 0 0.75rem; }
-  .reset-btn { width: 100%; height: 46px; background: transparent; color: #1DB954; border: 1px solid #1DB954; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .reset-btn:hover { background: #1DB954; color: #000; }
-  #results { display: none; }
-  #error { display: none; }
-  #loading { display: none; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 2.5rem 16px 4rem; -webkit-font-smoothing: antialiased; }
+  .app { max-width: 680px; margin: 0 auto; }
+  h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.6px; }
+  .sub { color: var(--muted); font-size: 15px; margin-top: 6px; line-height: 1.5; }
+  .section { margin-top: 2.5rem; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); margin-bottom: 6px; }
+  h2 { font-size: 20px; font-weight: 650; letter-spacing: -0.3px; margin-bottom: 4px; }
+  .hint { font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-top: 12px; }
+  .row { display: flex; gap: 8px; }
+  input[type=text], input[type=number], .money { width: 100%; background: #1b1b1b; border: 1px solid var(--line2); border-radius: 10px; height: 46px; padding: 0 14px; font-size: 16px; color: var(--text); outline: none; }
+  input:focus { border-color: var(--green); }
+  button { font: inherit; cursor: pointer; }
+  .btn { height: 46px; padding: 0 18px; border-radius: 10px; border: none; background: var(--green); color: #000; font-weight: 650; font-size: 15px; white-space: nowrap; }
+  .btn:hover { background: var(--green2); }
+  .btn:disabled { background: #333; color: #777; cursor: default; }
+  .btn.ghost { background: transparent; color: var(--green); border: 1px solid var(--green); width: 100%; margin-top: 14px; }
+  .btn.ghost:hover { background: var(--green); color: #000; }
+  .slider { display: flex; align-items: center; gap: 12px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+  .slider input { flex: 1; accent-color: var(--green); }
+  .slider b { color: var(--green); width: 40px; text-align: right; font-weight: 600; }
+  .msg { border-radius: 10px; padding: 10px 14px; font-size: 14px; margin-top: 12px; line-height: 1.5; display: none; }
+  .msg.err { background: #1f0b0b; color: var(--red); border: 1px solid #3a1414; }
+  .msg.warn { background: #1f1909; color: var(--amber); border: 1px solid #3a2f10; }
+  .artist { display: flex; align-items: center; gap: 14px; }
+  .artist img, .artist .ph { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: #222; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .artist .name { font-size: 20px; font-weight: 650; }
+  .artist .meta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .stat { background: #1a1a1a; border-radius: 10px; padding: 10px 12px; }
+  .stat .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); }
+  .stat .v { font-size: 18px; font-weight: 650; margin-top: 4px; letter-spacing: -0.3px; }
+  .lines { margin-top: 10px; }
+  .line { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; color: #bbb; }
+  .line:last-child { border-bottom: none; }
+  .line b { color: var(--text); font-weight: 600; }
+  .line.total { color: var(--text); font-weight: 650; border-top: 1px solid var(--line2); }
+  .line.total b { color: var(--green); }
+  .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .trio div { background: #1a1a1a; border-radius: 10px; padding: 10px; text-align: center; }
+  .trio .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); }
+  .trio .v { font-size: 17px; font-weight: 650; margin-top: 4px; }
+  .trio .mid { outline: 1px solid var(--green); }
+  .trio .mid .k, .trio .mid .v { color: var(--green); }
+  .fine { font-size: 12px; color: var(--faint); line-height: 1.6; margin-top: 12px; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); background: #1b1b1b; border-radius: 10px; padding: 3px; gap: 3px; }
+  .seg button { height: 38px; border-radius: 8px; border: none; background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; }
+  .seg button.on { background: var(--green); color: #000; }
+  .label { font-size: 12px; font-weight: 650; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 18px 0 8px; }
+  .label:first-child { margin-top: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { height: 34px; padding: 0 14px; border-radius: 17px; border: 1px solid var(--line2); background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; }
+  .chip.on { border-color: var(--green); color: var(--green); }
+  .chip.add { border-style: dashed; }
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  .field label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 5px; }
+  .field .wrap { position: relative; }
+  .field .wrap span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--faint); font-size: 15px; pointer-events: none; }
+  .field .wrap span.r { left: auto; right: 12px; }
+  .field .money { padding-left: 26px; }
+  .field .pctin { padding-right: 30px; }
+  .group-title { font-size: 13px; color: var(--text); font-weight: 600; margin: 14px 0 6px; grid-column: 1 / -1; }
+  .toggle { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #ccc; margin-top: 12px; }
+  .toggle input { width: 18px; height: 18px; accent-color: var(--green); }
+  details { margin-top: 14px; }
+  summary { font-size: 14px; color: var(--green); cursor: pointer; font-weight: 600; }
+  .yearbar { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .linkbtn { background: none; border: none; color: var(--red); font-size: 13px; }
+  .hero { text-align: center; padding: 6px 0 2px; }
+  .hero .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .hero .v { font-size: 38px; font-weight: 750; letter-spacing: -1px; color: var(--green); margin-top: 4px; }
+  .hero .s { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .adj { margin-top: 8px; }
+  .adj .line b.neg { color: var(--red); }
+  .adj .line b.pos { color: var(--green); }
+  .chart { margin-top: 10px; }
+  .chart svg { width: 100%; height: auto; display: block; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .two div { background: #1a1a1a; border-radius: 10px; padding: 12px; }
+  .two .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); }
+  .two .v { font-size: 20px; font-weight: 700; margin-top: 4px; }
+  .two .s { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .empty { color: var(--faint); font-size: 14px; text-align: center; padding: 18px 0; }
+  .hidden { display: none !important; }
+  @media (max-width: 420px) {
+    .stats, .trio { gap: 6px; }
+    .stat .v, .trio .v { font-size: 15px; }
+    .hero .v { font-size: 32px; }
+  }
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">
-    <h1>What's It Worth?</h1>
-    <p>See what your catalog is worth.</p>
-    <p style="font-size:12px; color:#444; margin-top:8px; line-height:1.6;">Estimates performance royalties only — excludes sync licensing, neighboring rights, live/touring income, and merchandise. Actual figures vary based on label deal, distributor split, and songwriting ownership.</p>
-  </div>
+  <h1>What's It Worth?</h1>
+  <p class="sub">Ballpark any artist in seconds, or run a real valuation from actual income.</p>
 
-  <div class="search-row">
-    <input type="text" id="artistInput" placeholder="Artist name (e.g. Drake)" />
-    <button id="searchBtn" onclick="fetchArtist()">Estimate</button>
-  </div>
-
-  <div class="slider-row">
-    <label>Songwriter split</label>
-    <input type="range" id="songwriterSplit" min="0" max="100" value="50" oninput="document.getElementById('splitVal').textContent=this.value+'%'" />
-    <span class="slider-val" id="splitVal">50%</span>
-  </div>
-
-  <div id="error" class="error-msg"></div>
-  <div id="loading" class="loading">Looking up artist...</div>
-
-  <div id="results">
-    <div class="artist-header">
-      <img id="artistImg" class="artist-img" src="" alt="" style="display:none" />
-      <div id="artistImgPlaceholder" class="artist-img-placeholder">🎵</div>
-      <div>
-        <div class="artist-name" id="artistName"></div>
-        <div class="artist-meta" id="artistMeta"></div>
+  <!-- QUICK ESTIMATE -->
+  <section class="section" id="quick">
+    <div class="eyebrow">Quick estimate</div>
+    <h2>Look up an artist</h2>
+    <p class="hint">A rough streaming-only ballpark from Spotify monthly listeners. Gross figures — before label, distributor and publisher splits.</p>
+    <div class="card">
+      <div class="row">
+        <input type="text" id="artistInput" placeholder="Artist name" autocomplete="off" />
+        <button class="btn" id="searchBtn">Estimate</button>
+      </div>
+      <div class="slider">
+        <span>Songwriter share</span>
+        <input type="range" id="split" min="0" max="100" value="50" />
+        <b id="splitVal">50%</b>
+      </div>
+      <div class="msg err" id="qErr"></div>
+      <div class="msg warn" id="qWarn"></div>
+      <div id="manualListeners" class="hidden" style="margin-top:12px">
+        <div class="field"><label>Enter monthly listeners yourself</label>
+          <input type="text" inputmode="numeric" id="listenersInput" placeholder="e.g. 850,000" /></div>
       </div>
     </div>
 
-    <div class="metrics-grid">
-      <div class="metric-card"><div class="metric-label">Monthly listeners</div><div class="metric-value" id="monthlyListeners">—</div></div>
-      <div class="metric-card"><div class="metric-label">Est. monthly streams</div><div class="metric-value" id="estStreams">—</div></div>
-      <div class="metric-card"><div class="metric-label">Est. monthly royalties</div><div class="metric-value" id="monthlyRoyalties">—</div></div>
-    </div>
-
-    <div class="breakdown-card">
-      <div class="breakdown-title">Annual breakdown by platform</div>
-      <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#1DB954"></span>Spotify master</span><span class="breakdown-value" id="spotifyMaster">—</span></div>
-      <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#169140"></span>Spotify publishing</span><span class="breakdown-value" id="spotifyPub">—</span></div>
-      <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#fc3c44"></span>Apple Music</span><span class="breakdown-value" id="apple">—</span></div>
-      <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#FF0000"></span>YouTube</span><span class="breakdown-value" id="youtube">—</span></div>
-      <div class="breakdown-row total-row"><span class="breakdown-label">Total (mid estimate)</span><span class="breakdown-value" id="total">—</span></div>
-    </div>
-
-    <div class="range-row">
-      <div class="range-card"><div class="range-tag">Low</div><div class="range-val" id="rangeLow">—</div></div>
-      <div class="range-card mid"><div class="range-tag">Mid</div><div class="range-val" id="rangeMid">—</div></div>
-      <div class="range-card"><div class="range-tag">High</div><div class="range-val" id="rangeHigh">—</div></div>
-    </div>
-
-    <div class="catalog-card">
-      <div class="catalog-title">Estimated catalog value</div>
-      <div class="catalog-grid">
-        <div class="catalog-col"><div class="catalog-tag">Low (7×)</div><div class="catalog-val" id="saleLow">—</div></div>
-        <div class="catalog-col mid"><div class="catalog-tag">Mid (12×)</div><div class="catalog-val" id="saleMid">—</div></div>
-        <div class="catalog-col"><div class="catalog-tag">High (20×)</div><div class="catalog-val" id="saleHigh">—</div></div>
+    <div class="card hidden" id="qResult">
+      <div class="artist">
+        <img id="aImg" alt="" class="hidden" /><div class="ph" id="aPh">♪</div>
+        <div><div class="name" id="aName"></div><div class="meta" id="aMeta"></div></div>
       </div>
-      <div class="catalog-note">Catalog sale value as a multiple of annual royalties. Market range is 7–20× NPS depending on genre, recoupment status, and buyer appetite. 12× is the typical mid-market benchmark.</div>
+      <div class="stats">
+        <div class="stat"><div class="k">Listeners</div><div class="v" id="qListeners">—</div></div>
+        <div class="stat"><div class="k">Streams/mo</div><div class="v" id="qStreams">—</div></div>
+        <div class="stat"><div class="k">Per year</div><div class="v" id="qYear">—</div></div>
+      </div>
+      <div class="lines">
+        <div class="line"><span>Spotify master</span><b id="qSM">—</b></div>
+        <div class="line"><span>Spotify publishing</span><b id="qSP">—</b></div>
+        <div class="line"><span>Apple Music</span><b id="qAp">—</b></div>
+        <div class="line"><span>YouTube</span><b id="qYt">—</b></div>
+        <div class="line total"><span>Total per year</span><b id="qTot">—</b></div>
+      </div>
+      <div class="trio">
+        <div><div class="k">Low 7×</div><div class="v" id="qLow">—</div></div>
+        <div class="mid"><div class="k">Mid 12×</div><div class="v" id="qMid">—</div></div>
+        <div><div class="k">High 20×</div><div class="v" id="qHigh">—</div></div>
+      </div>
+      <p class="fine">Streams estimated at 2.8× monthly listeners. Spotify master $0.004/stream, publishing $0.001 × songwriter share, Apple Music $0.008 at ~10% of Spotify volume, YouTube $0.002 at ~35%. Excludes sync, neighboring rights, radio, physical and live.</p>
+      <button class="btn ghost" id="useEstimate">Use this as a starting point below ↓</button>
+    </div>
+  </section>
+
+  <!-- FULL VALUATION -->
+  <section class="section" id="full">
+    <div class="eyebrow">Real valuation</div>
+    <h2>Value a catalog from its income</h2>
+    <p class="hint">Enter income from royalty statements, by year and source. Values update as you type and stay saved on this device.</p>
+
+    <div class="card">
+      <div class="label">What's being sold</div>
+      <div class="seg" id="rightsSeg">
+        <button data-v="publishing">Publishing</button>
+        <button data-v="masters">Masters</button>
+        <button data-v="both">Both</button>
+      </div>
+
+      <div class="label">Income by year</div>
+      <div class="chips" id="yearChips"></div>
+      <div id="yearFields"></div>
+      <div class="yearbar"><span class="hint" id="yearHint"></span><button class="linkbtn" id="removeYear">Remove this year</button></div>
+
+      <div class="label">Splits and fees</div>
+      <p class="hint">Leave at 0% if the income you entered is already net to the owner.</p>
+      <div class="fields" id="splitFields"></div>
+
+      <div class="label">Catalog profile</div>
+      <div class="fields">
+        <div class="field"><label>Dollar age (years)</label>
+          <div class="wrap"><input type="text" inputmode="decimal" class="pctin" data-k="dollarAge" /><span class="r">yr</span></div></div>
+        <div class="field"><label>Top song's share of income</label>
+          <div class="wrap"><input type="text" inputmode="decimal" class="pctin" data-k="topShare" /><span class="r">%</span></div></div>
+      </div>
+      <p class="fine" style="margin-top:8px">Dollar age = how old the money is: each song's annual income × its age, divided by total income.</p>
+      <label class="toggle"><input type="checkbox" data-k="normalizeSync" /> Average sync across years (it's lumpy)</label>
+
+      <details>
+        <summary>DCF assumptions</summary>
+        <div class="fields" style="margin-top:10px">
+          <div class="field"><label>Discount rate</label>
+            <div class="wrap"><input type="text" inputmode="decimal" class="pctin" data-k="discountRate" /><span class="r">%</span></div></div>
+          <div class="field"><label>Streaming market growth</label>
+            <div class="wrap"><input type="text" inputmode="decimal" class="pctin" data-k="streamingGrowth" /><span class="r">%</span></div></div>
+          <div class="field"><label>Terminal growth</label>
+            <div class="wrap"><input type="text" inputmode="decimal" class="pctin" data-k="terminalGrowth" /><span class="r">%</span></div></div>
+        </div>
+        <p class="fine">Each year's income = prior year × (1 + market growth − decay). Decay is set by catalog age: 25% in year one, easing to 1% for 20+ year-old money.</p>
+      </details>
     </div>
 
-    <p class="disclaimer">Monthly listener data via RapidAPI. Streams estimated at 2.8× monthly listeners. Per-stream rates: Spotify master $0.004, publishing $0.001 × songwriter split; Apple Music $0.008 at ~10% of Spotify volume; YouTube $0.002 at ~35% of volume. Low/high range reflects ±40% variance.</p>
-    <button class="reset-btn" onclick="reset()">Search another artist</button>
-  </div>
+    <div class="card" id="results">
+      <div class="empty" id="empty">Enter some income above to see a valuation.</div>
+      <div id="resBody" class="hidden">
+        <div class="hero">
+          <div class="k">Estimated value (mid)</div>
+          <div class="v" id="rMid">—</div>
+          <div class="s" id="rMidSub"></div>
+        </div>
+        <div class="trio">
+          <div><div class="k">Low</div><div class="v" id="rLow">—</div></div>
+          <div class="mid"><div class="k">Mid</div><div class="v" id="rMid2">—</div></div>
+          <div><div class="k">High</div><div class="v" id="rHigh">—</div></div>
+        </div>
+        <div class="two">
+          <div><div class="k" id="rBaseK">Normalized net / yr</div><div class="v" id="rBase">—</div><div class="s" id="rBaseSub"></div></div>
+          <div><div class="k">DCF value</div><div class="v" id="rDcf">—</div><div class="s" id="rDcfSub"></div></div>
+        </div>
+
+        <div class="label" style="margin-top:20px">How the multiple was set</div>
+        <div class="lines adj" id="rAdj"></div>
+
+        <div class="label">10-year income projection</div>
+        <div class="chart" id="rChart"></div>
+
+        <div class="label">Latest year income mix (net)</div>
+        <div class="lines" id="rMix"></div>
+
+        <div class="label">Trend</div>
+        <div class="lines" id="rTrend"></div>
+
+        <p class="fine">Multiples are a starting benchmark, not a market quote — deal terms, rights duration, recoupment, buyer appetite and rates all move them. Not financial advice.</p>
+        <button class="btn ghost" id="resetAll" style="border-color:#3a1414;color:var(--red)">Clear all inputs</button>
+      </div>
+    </div>
+  </section>
 </div>
 
+<script src="valuation.js"></script>
 <script>
-const SPOTIFY_CLIENT_ID = '5e868c7752ae46fa82aa284d8754b0bd';
-const SPOTIFY_CLIENT_SECRET = 'b6910fabcd3843d8945b877d8312549e';
-let spotifyToken = null;
+(function () {
+  const V = window.Valuation;
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => n >= 1e9 ? (n/1e9).toFixed(1)+'B' : n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : Math.round(n).toLocaleString();
+  const money = (n) => {
+    const a = Math.abs(n), s = n < 0 ? '−$' : '$';
+    if (a >= 1e9) return s+(a/1e9).toFixed(2)+'B';
+    if (a >= 1e6) return s+(a/1e6).toFixed(2)+'M';
+    if (a >= 1e4) return s+Math.round(a/1e3)+'K';
+    return s+Math.round(a).toLocaleString();
+  };
+  const show = (el, on) => el.classList.toggle('hidden', !on);
+  const msg = (el, text) => { el.textContent = text || ''; el.style.display = text ? 'block' : 'none'; };
 
-function fmt(n) {
-  if (n >= 1000000000) return (n/1000000000).toFixed(1)+'B';
-  if (n >= 1000000) return (n/1000000).toFixed(1)+'M';
-  if (n >= 1000) return (n/1000).toFixed(1)+'K';
-  return Math.round(n).toLocaleString();
-}
-function fmtMoney(n) {
-  if (n >= 1000000) return '$'+(n/1000000).toFixed(2)+'M';
-  if (n >= 1000) return '$'+Math.round(n/1000)+'K';
-  return '$'+Math.round(n);
-}
-function calcRoyalties(streams, split) {
-  const spotifyMaster = streams*0.004*12;
-  const spotifyPub = streams*0.001*split*12;
-  const apple = streams*0.10*0.008*12;
-  const youtube = streams*0.35*0.002*12;
-  const total = spotifyMaster+spotifyPub+apple+youtube;
-  return {spotifyMaster,spotifyPub,apple,youtube,total};
-}
-async function getSpotifyToken() {
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {'Content-Type':'application/x-www-form-urlencoded','Authorization':'Basic '+btoa(SPOTIFY_CLIENT_ID+':'+SPOTIFY_CLIENT_SECRET)},
-    body: 'grant_type=client_credentials'
+  const PUB_LABELS = { performance: 'Performance (PRO)', mechanical: 'Mechanical (MLC/HFA)', sync: 'Sync', other: 'Other / foreign' };
+  const MAS_LABELS = { streaming: 'Streaming & downloads', neighboring: 'Neighboring rights', sync: 'Sync (master)', other: 'Physical / other' };
+
+  // ---------- state ----------
+  const thisYear = new Date().getFullYear();
+  const DEFAULTS = () => ({
+    rights: 'both', active: 0,
+    years: [{ label: String(thisYear - 1), pub: {}, mas: {} }],
+    pubPayout: 0, masPayout: 0, adminFee: 0,
+    dollarAge: 8, topShare: 30, normalizeSync: true,
+    discountRate: 10, streamingGrowth: 3, terminalGrowth: 0,
   });
-  const data = await res.json();
-  if (!data.access_token) throw new Error('Spotify auth failed');
-  spotifyToken = data.access_token;
-}
-async function fetchArtist() {
-  const name = document.getElementById('artistInput').value.trim();
-  if (!name) return;
-  document.getElementById('error').style.display='none';
-  document.getElementById('results').style.display='none';
-  document.getElementById('loading').style.display='block';
-  document.getElementById('searchBtn').disabled=true;
-  try {
-    if (!spotifyToken) await getSpotifyToken();
-    const searchRes = await fetch('https://api.spotify.com/v1/search?q='+encodeURIComponent(name)+'&type=artist&limit=1',{headers:{'Authorization':'Bearer '+spotifyToken}});
-    const searchData = await searchRes.json();
-    const artist = searchData.artists?.items?.[0];
-    if (!artist) { showError('Artist not found. Try a different spelling.'); return; }
-    const listenersRes = await fetch('/api/listeners?artistId='+artist.id);
-    const listenersData = await listenersRes.json();
-    const monthlyListeners = listenersData.monthly_listeners || listenersData.monthlyListeners || 0;
-    if (!monthlyListeners) {
-      const why = listenersData.message || listenersData.error || 'no listener count returned';
-      showError('Couldn\'t get monthly listeners for '+artist.name+' ('+why+'). Try again in a minute.');
-      return;
+  let state = DEFAULTS();
+  try { const s = JSON.parse(localStorage.getItem('wiw_v2') || 'null'); if (s && s.years) state = Object.assign(DEFAULTS(), s); } catch (_) {}
+  const save = () => { try { localStorage.setItem('wiw_v2', JSON.stringify(state)); } catch (_) {} };
+
+  // ---------- quick estimate ----------
+  let lastArtist = null;
+  $('split').addEventListener('input', (e) => { $('splitVal').textContent = e.target.value + '%'; if (lastArtist) renderQuick(); });
+
+  async function lookup() {
+    const q = $('artistInput').value.trim();
+    if (!q) return;
+    msg($('qErr')); msg($('qWarn')); show($('manualListeners'), false);
+    $('searchBtn').disabled = true; $('searchBtn').textContent = 'Looking…';
+    try {
+      const res = await fetch('/api/artist?q=' + encodeURIComponent(q));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Lookup failed');
+      lastArtist = data;
+      if (!data.monthlyListeners) {
+        msg($('qWarn'), "Couldn't fetch monthly listeners (" + (data.warning || 'unknown reason') + "). You can type the number from the artist's Spotify page.");
+        show($('manualListeners'), true);
+      }
+      renderQuick();
+    } catch (e) {
+      msg($('qErr'), e.message);
+      show($('qResult'), false);
+    } finally {
+      $('searchBtn').disabled = false; $('searchBtn').textContent = 'Estimate';
     }
-    const split = parseInt(document.getElementById('songwriterSplit').value) / 100;
-    const streams = Math.round(monthlyListeners * 2.8);
-    const mid = calcRoyalties(streams, split);
-    const low = calcRoyalties(streams*0.6, split);
-    const high = calcRoyalties(streams*1.4, split);
-    const img = document.getElementById('artistImg');
-    const placeholder = document.getElementById('artistImgPlaceholder');
-    if (artist.images?.[0]?.url) { img.src=artist.images[0].url; img.style.display='block'; placeholder.style.display='none'; }
-    else { img.style.display='none'; placeholder.style.display='flex'; }
-    document.getElementById('artistName').textContent = artist.name;
-    document.getElementById('artistMeta').textContent = monthlyListeners.toLocaleString()+' monthly listeners · '+((artist.genres||[]).slice(0,2).join(', ')||'genre unknown');
-    document.getElementById('monthlyListeners').textContent = fmt(monthlyListeners);
-    document.getElementById('estStreams').textContent = fmt(streams)+'/mo';
-    document.getElementById('monthlyRoyalties').textContent = fmtMoney(mid.total/12)+'/mo';
-    document.getElementById('spotifyMaster').textContent = fmtMoney(mid.spotifyMaster)+'/yr';
-    document.getElementById('spotifyPub').textContent = fmtMoney(mid.spotifyPub)+'/yr';
-    document.getElementById('apple').textContent = fmtMoney(mid.apple)+'/yr';
-    document.getElementById('youtube').textContent = fmtMoney(mid.youtube)+'/yr';
-    document.getElementById('total').textContent = fmtMoney(mid.total)+'/yr';
-    document.getElementById('rangeLow').textContent = fmtMoney(low.total)+'/yr';
-    document.getElementById('rangeMid').textContent = fmtMoney(mid.total)+'/yr';
-    document.getElementById('rangeHigh').textContent = fmtMoney(high.total)+'/yr';
-    document.getElementById('saleLow').textContent = fmtMoney(mid.total*7);
-    document.getElementById('saleMid').textContent = fmtMoney(mid.total*12);
-    document.getElementById('saleHigh').textContent = fmtMoney(mid.total*20);
-    document.getElementById('results').style.display='block';
-  } catch(e) {
-    showError('Something went wrong: '+e.message);
-  } finally {
-    document.getElementById('loading').style.display='none';
-    document.getElementById('searchBtn').disabled=false;
   }
-}
-function reset() {
-  document.getElementById('artistInput').value='';
-  document.getElementById('results').style.display='none';
-  document.getElementById('error').style.display='none';
-  document.getElementById('artistInput').focus();
-}
-function showError(msg) {
-  const el=document.getElementById('error');
-  el.textContent=msg;
-  el.style.display='block';
-  document.getElementById('loading').style.display='none';
-  document.getElementById('searchBtn').disabled=false;
-}
-document.getElementById('artistInput').addEventListener('keydown',e=>{if(e.key==='Enter')fetchArtist();});
+  $('searchBtn').addEventListener('click', lookup);
+  $('artistInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') lookup(); });
+  $('listenersInput').addEventListener('input', () => { if (lastArtist) renderQuick(); });
+
+  function renderQuick() {
+    const a = lastArtist;
+    const manual = parseFloat(($('listenersInput').value || '').replace(/[^0-9.]/g, '')) || 0;
+    const listeners = a.monthlyListeners || manual;
+    if (a.image) { $('aImg').src = a.image; show($('aImg'), true); show($('aPh'), false); } else { show($('aImg'), false); show($('aPh'), true); }
+    $('aName').textContent = a.name;
+    $('aMeta').textContent = [listeners ? listeners.toLocaleString() + ' monthly listeners' : 'monthly listeners unavailable', a.genres.join(', ')].filter(Boolean).join(' · ');
+    show($('qResult'), true);
+    const r = V.quickEstimate(listeners, $('split').value);
+    $('qListeners').textContent = listeners ? fmt(listeners) : '—';
+    $('qStreams').textContent = listeners ? fmt(r.streams) : '—';
+    $('qYear').textContent = listeners ? money(r.total) : '—';
+    $('qSM').textContent = money(r.spotifyMaster); $('qSP').textContent = money(r.spotifyPub);
+    $('qAp').textContent = money(r.apple); $('qYt').textContent = money(r.youtube);
+    $('qTot').textContent = money(r.total);
+    $('qLow').textContent = money(r.range.low); $('qMid').textContent = money(r.range.mid); $('qHigh').textContent = money(r.range.high);
+    $('useEstimate').disabled = !listeners;
+    $('qResult').dataset.master = r.master; $('qResult').dataset.pub = r.publishing;
+  }
+
+  $('useEstimate').addEventListener('click', () => {
+    const master = +$('qResult').dataset.master || 0, pub = +$('qResult').dataset.pub || 0;
+    state.rights = 'both';
+    state.years = [{ label: String(thisYear - 1), pub: { performance: Math.round(pub / 2), mechanical: Math.round(pub / 2) }, mas: { streaming: Math.round(master) } }];
+    state.active = 0;
+    save(); renderForm(); compute();
+    $('full').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // ---------- full valuation form ----------
+  function moneyField(group, key, label, val) {
+    return '<div class="field"><label>' + label + '</label><div class="wrap"><span>$</span>' +
+      '<input type="text" inputmode="decimal" class="money" data-g="' + group + '" data-c="' + key + '" value="' + (val ? Number(val).toLocaleString() : '') + '" placeholder="0" /></div></div>';
+  }
+  function pctField(key, label) {
+    return '<div class="field"><label>' + label + '</label><div class="wrap"><input type="text" inputmode="decimal" class="pctin" data-k="' + key + '" /><span class="r">%</span></div></div>';
+  }
+
+  function renderForm() {
+    document.querySelectorAll('#rightsSeg button').forEach((b) => b.classList.toggle('on', b.dataset.v === state.rights));
+    // year chips
+    const chips = state.years.map((y, i) => '<button class="chip' + (i === state.active ? ' on' : '') + '" data-i="' + i + '">' + y.label + '</button>').join('');
+    $('yearChips').innerHTML = chips + (state.years.length < 5 ? '<button class="chip add" id="addYear">+ Earlier year</button>' : '');
+    // fields for active year
+    const y = state.years[state.active];
+    let html = '<div class="fields">';
+    if (state.rights !== 'masters') { html += '<div class="group-title">Publishing</div>'; V.PUB.forEach((k) => { html += moneyField('pub', k, PUB_LABELS[k], y.pub[k]); }); }
+    if (state.rights !== 'publishing') { html += '<div class="group-title">Masters</div>'; V.MAS.forEach((k) => { html += moneyField('mas', k, MAS_LABELS[k], y.mas[k]); }); }
+    html += '</div>';
+    $('yearFields').innerHTML = html;
+    $('yearHint').textContent = state.years.length > 1 ? 'Most recent year is the base; earlier years set the trend.' : 'Add earlier years to measure trend and volatility.';
+    show($('removeYear'), state.years.length > 1);
+    // split fields
+    let sf = '';
+    if (state.rights !== 'masters') sf += pctField('pubPayout', 'Paid to writers');
+    if (state.rights !== 'publishing') sf += pctField('masPayout', 'Paid to artists/producers');
+    sf += pctField('adminFee', 'Admin / distribution fee');
+    $('splitFields').innerHTML = sf;
+    // scalar inputs
+    document.querySelectorAll('[data-k]').forEach((el) => {
+      if (el.type === 'checkbox') el.checked = !!state[el.dataset.k];
+      else el.value = state[el.dataset.k];
+    });
+  }
+
+  $('rightsSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; state.rights = b.dataset.v; save(); renderForm(); compute(); });
+  $('yearChips').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'addYear') {
+      const earliest = parseInt(state.years[0].label, 10) || thisYear - 1;
+      state.years.unshift({ label: String(earliest - 1), pub: {}, mas: {} });
+      state.active = 0;
+    } else state.active = +b.dataset.i;
+    save(); renderForm();
+  });
+  $('removeYear').addEventListener('click', () => {
+    if (state.years.length < 2) return;
+    state.years.splice(state.active, 1);
+    state.active = Math.max(0, state.active - 1);
+    save(); renderForm(); compute();
+  });
+
+  document.addEventListener('input', (e) => {
+    const el = e.target;
+    if (el.dataset.g) { state.years[state.active][el.dataset.g][el.dataset.c] = parseFloat(el.value.replace(/[^0-9.]/g, '')) || 0; }
+    else if (el.dataset.k && el.type !== 'checkbox') { state[el.dataset.k] = el.value; }
+    else return;
+    save(); compute();
+  });
+  document.addEventListener('change', (e) => {
+    const el = e.target;
+    if (el.dataset.k && el.type === 'checkbox') { state[el.dataset.k] = el.checked; save(); compute(); }
+    if (el.dataset.g) { const v = parseFloat(el.value.replace(/[^0-9.]/g, '')) || 0; el.value = v ? v.toLocaleString() : ''; }
+  });
+  $('resetAll').addEventListener('click', () => { if (!confirm('Clear all valuation inputs?')) return; state = DEFAULTS(); save(); renderForm(); compute(); });
+
+  // ---------- results ----------
+  const MIX_LABELS = {};
+  Object.keys(PUB_LABELS).forEach((k) => { MIX_LABELS['pub_' + k] = 'Pub · ' + PUB_LABELS[k]; });
+  Object.keys(MAS_LABELS).forEach((k) => { MIX_LABELS['mas_' + k] = 'Master · ' + MAS_LABELS[k]; });
+
+  function compute() {
+    const r = V.valuate(state);
+    show($('empty'), !!r.empty); show($('resBody'), !r.empty);
+    if (r.empty) return;
+    const baseName = { publishing: 'NPS', masters: 'NLS', both: 'NPS + NLS' }[r.rights];
+    $('rMid').textContent = money(r.values.mid); $('rMid2').textContent = money(r.values.mid);
+    $('rLow').textContent = money(r.values.low); $('rHigh').textContent = money(r.values.high);
+    $('rMidSub').textContent = r.multiple.mid.toFixed(1) + '× normalized ' + baseName + ' of ' + money(r.base);
+    $('rBaseK').textContent = 'Normalized ' + baseName + ' / yr';
+    $('rBase').textContent = money(r.base);
+    $('rBaseSub').textContent = r.normalizeSync && r.avgSync ? 'sync averaged across years' : 'latest year as reported';
+    $('rDcf').textContent = money(r.dcf.value);
+    $('rDcfSub').textContent = r.dcf.impliedMultiple.toFixed(1) + '× implied · ' + Math.round(r.dcf.pvTerminal / r.dcf.value * 100) + '% terminal';
+    // adjustments
+    let adj = '<div class="line"><span>Base multiple (' + r.rights + ')</span><b>' + r.baseMultiple.toFixed(1) + '×</b></div>';
+    r.adj.forEach(([label, v]) => { adj += '<div class="line"><span>' + label + '</span><b class="' + (v < 0 ? 'neg' : 'pos') + '">' + (v > 0 ? '+' : '−') + Math.abs(v).toFixed(2).replace(/\.?0+$/, '') + '×</b></div>'; });
+    adj += '<div class="line total"><span>Mid multiple (range ±20%)</span><b>' + r.multiple.mid.toFixed(1) + '×</b></div>';
+    $('rAdj').innerHTML = adj;
+    // mix
+    const tot = Object.values(r.mix).reduce((a, b) => a + b, 0) || 1;
+    $('rMix').innerHTML = Object.entries(r.mix).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
+      .map(([k, v]) => '<div class="line"><span>' + MIX_LABELS[k] + '</span><b>' + money(v) + ' · ' + Math.round(v / tot * 100) + '%</b></div>').join('') || '<div class="line"><span>No income in the latest year</span><b>—</b></div>';
+    // trend
+    const t = [];
+    r.years.forEach((y) => t.push('<div class="line"><span>' + y.label + ' net</span><b>' + money(y.total) + '</b></div>'));
+    t.push('<div class="line"><span>Recurring income trend (CAGR)</span><b>' + (r.cagr === null ? 'add years' : (r.cagr * 100).toFixed(1) + '%/yr') + '</b></div>');
+    t.push('<div class="line"><span>Year-to-year volatility</span><b>' + (r.cv === null ? 'needs 3 years' : (r.cv * 100).toFixed(0) + '%') + '</b></div>');
+    $('rTrend').innerHTML = t.join('');
+    drawChart(r);
+  }
+
+  function drawChart(r) {
+    const pts = [{ label: 'Now', v: r.base }].concat(r.dcf.projection.map((p) => ({ label: 'Y' + p.year, v: p.income })));
+    const W = 640, H = 200, pad = 28, bw = (W - pad) / pts.length;
+    const max = Math.max(...pts.map((p) => p.v)) || 1;
+    let bars = '';
+    pts.forEach((p, i) => {
+      const h = Math.max(2, (p.v / max) * (H - 50));
+      const x = pad + i * bw + bw * 0.15, y = H - 24 - h;
+      bars += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (bw * 0.7).toFixed(1) + '" height="' + h.toFixed(1) + '" rx="3" fill="' + (i === 0 ? '#1DB954' : '#1DB95499') + '"/>';
+      bars += '<text x="' + (x + bw * 0.35).toFixed(1) + '" y="' + (H - 8) + '" fill="#777" font-size="12" text-anchor="middle">' + p.label + '</text>';
+      if (i === 0 || i === pts.length - 1) bars += '<text x="' + (x + bw * 0.35).toFixed(1) + '" y="' + (y - 6).toFixed(1) + '" fill="#ccc" font-size="12" text-anchor="middle">' + money(p.v) + '</text>';
+    });
+    $('rChart').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Projected annual income over 10 years">' + bars + '</svg>';
+  }
+
+  renderForm(); compute();
+})();
 </script>
 </body>
 </html>
-
