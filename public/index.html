@@ -109,7 +109,6 @@
       <div class="breakdown-title">Annual breakdown by platform</div>
       <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#1DB954"></span>Spotify master</span><span class="breakdown-value" id="spotifyMaster">—</span></div>
       <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#169140"></span>Spotify publishing</span><span class="breakdown-value" id="spotifyPub">—</span></div>
-      <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#22c55e"></span>PRO (ASCAP/BMI)</span><span class="breakdown-value" id="proIncome">—</span></div>
       <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#fc3c44"></span>Apple Music</span><span class="breakdown-value" id="apple">—</span></div>
       <div class="breakdown-row"><span class="breakdown-label"><span class="dot" style="background:#FF0000"></span>YouTube</span><span class="breakdown-value" id="youtube">—</span></div>
       <div class="breakdown-row total-row"><span class="breakdown-label">Total (mid estimate)</span><span class="breakdown-value" id="total">—</span></div>
@@ -131,7 +130,7 @@
       <div class="catalog-note">Catalog sale value as a multiple of annual royalties. Market range is 7–20× NPS depending on genre, recoupment status, and buyer appetite. 12× is the typical mid-market benchmark.</div>
     </div>
 
-    <p class="disclaimer">Monthly listener data via RapidAPI. Streams estimated at 2.8× monthly listeners. Per-stream rates: Spotify master $0.004, publishing $0.001 × songwriter split; PRO $0.0033 × songwriter split; Apple Music $0.008 at ~10% of Spotify volume; YouTube $0.002 at ~35% of volume. Low/high range reflects ±40% variance.</p>
+    <p class="disclaimer">Monthly listener data via RapidAPI. Streams estimated at 2.8× monthly listeners. Per-stream rates: Spotify master $0.004, publishing $0.001 × songwriter split; Apple Music $0.008 at ~10% of Spotify volume; YouTube $0.002 at ~35% of volume. Low/high range reflects ±40% variance.</p>
     <button class="reset-btn" onclick="reset()">Search another artist</button>
   </div>
 </div>
@@ -155,11 +154,10 @@ function fmtMoney(n) {
 function calcRoyalties(streams, split) {
   const spotifyMaster = streams*0.004*12;
   const spotifyPub = streams*0.001*split*12;
-  const proIncome = streams*0.0033*split*12;
   const apple = streams*0.10*0.008*12;
   const youtube = streams*0.35*0.002*12;
-  const total = spotifyMaster+spotifyPub+proIncome+apple+youtube;
-  return {spotifyMaster,spotifyPub,proIncome,apple,youtube,total};
+  const total = spotifyMaster+spotifyPub+apple+youtube;
+  return {spotifyMaster,spotifyPub,apple,youtube,total};
 }
 async function getSpotifyToken() {
   const res = await fetch('https://accounts.spotify.com/api/token', {
@@ -203,7 +201,6 @@ async function fetchArtist() {
     document.getElementById('monthlyRoyalties').textContent = fmtMoney(mid.total/12)+'/mo';
     document.getElementById('spotifyMaster').textContent = fmtMoney(mid.spotifyMaster)+'/yr';
     document.getElementById('spotifyPub').textContent = fmtMoney(mid.spotifyPub)+'/yr';
-    document.getElementById('proIncome').textContent = fmtMoney(mid.proIncome)+'/yr';
     document.getElementById('apple').textContent = fmtMoney(mid.apple)+'/yr';
     document.getElementById('youtube').textContent = fmtMoney(mid.youtube)+'/yr';
     document.getElementById('total').textContent = fmtMoney(mid.total)+'/yr';
