@@ -1,7 +1,8 @@
 // GET /api/artist?q=Drake
 // Looks up the artist on Spotify and their monthly listeners on RapidAPI.
 // Keys live in Vercel environment variables, never in the code:
-//   SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, RAPIDAPI_KEY
+//   SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET (required)
+//   RAPIDAPI_KEY (optional: auto-fills monthly listeners)
 
 let cachedToken = null;
 let tokenExpires = 0;
@@ -28,7 +29,7 @@ async function spotifyToken() {
 
 async function monthlyListeners(artistId) {
   const key = process.env.RAPIDAPI_KEY;
-  if (!key) return { listeners: null, warning: 'RapidAPI key is not set in Vercel' };
+  if (!key) return { listeners: null, warning: null }; // optional: without it, listeners are typed in by hand
   const host = 'spotify-artist-monthly-listeners.p.rapidapi.com';
   const res = await fetch(
     `https://${host}/artists/spotify_artist_monthly_listeners?spotify_artist_id=${encodeURIComponent(artistId)}`,

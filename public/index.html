@@ -126,7 +126,7 @@
       <div class="msg err" id="qErr"></div>
       <div class="msg warn" id="qWarn"></div>
       <div id="manualListeners" class="hidden" style="margin-top:12px">
-        <div class="field"><label>Enter monthly listeners yourself</label>
+        <div class="field"><label>Monthly listeners (shown on the artist's Spotify page)</label>
           <input type="text" inputmode="numeric" id="listenersInput" placeholder="e.g. 850,000" /></div>
       </div>
     </div>
@@ -289,8 +289,9 @@
       if (!res.ok) throw new Error(data.error || 'Lookup failed');
       lastArtist = data;
       if (!data.monthlyListeners) {
-        msg($('qWarn'), "Couldn't fetch monthly listeners (" + (data.warning || 'unknown reason') + "). You can type the number from the artist's Spotify page.");
+        if (data.warning) msg($('qWarn'), "Couldn't fetch monthly listeners (" + data.warning + ").");
         show($('manualListeners'), true);
+        $('listenersInput').focus();
       }
       renderQuick();
     } catch (e) {

@@ -19,6 +19,6 @@ No keys live in the code. Add these in Vercel → Project → Settings → Envir
 |---|---|
 | `SPOTIFY_CLIENT_ID` | developer.spotify.com → your app → Settings |
 | `SPOTIFY_CLIENT_SECRET` | same page (rotate it: the old one was public) |
-| `RAPIDAPI_KEY` | rapidapi.com → Apps → your app → Authorization (rotate it too) |
+| `RAPIDAPI_KEY` | Optional. rapidapi.com → Apps → your app → Authorization. Without it, users type monthly listeners in by hand. |
 
 Redeploy after adding them. If the listener service fails, the page shows the reason and lets the user type monthly listeners in by hand. The real valuation never needs any keys.
